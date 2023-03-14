@@ -38,6 +38,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth:sanctum', 'admin']], f
 
 Route::group(['prefix' => 'company', 'middleware' => ['auth:sanctum', 'company']], function(){
 	Route::get('/', [FrontController::class, 'index']);
+    Route::resource('company', CompanyController::class);
+    Route::resource('worker', WorkerController::class);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 

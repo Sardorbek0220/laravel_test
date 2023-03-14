@@ -16,7 +16,12 @@ class CompanyController extends Controller
      */
     public function index()
     {
-        return response()->json(Company::paginate(10), 200);
+        if (auth()->user()->user_type_id == 1) {
+            return response()->json(Company::paginate(10), 200);
+        }else{
+            return response()->json(Company::where('id', auth()->user()->company_id)->paginate(10), 200);
+        }
+        
     }
 
     /**
@@ -37,16 +42,24 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name'=>'required',
-            'director'=>'required',
-            'address'=>'required',
-            'email'=>'required|email',
-            'website'=>'required',
-            'phone'=>'required',
-        ]);
-        $company = Company::create($request->all());
-        return response()->json($company, 201);
+
+        if (auth()->user()->user_type_id == 1) {
+            $validator = Validator::make($request->all(), [
+                'name'=>'required',
+                'director'=>'required',
+                'address'=>'required',
+                'email'=>'required|email',
+                'website'=>'required',
+                'phone'=>'required',
+            ]);
+
+            $company = Company::create($request->all());
+            return response()->json($company, 201);
+        }else{
+            return response()->json('not allowed', 200);
+        }
+        
+        
     }
 
     /**
@@ -57,7 +70,16 @@ class CompanyController extends Controller
      */
     public function show($id)
     {
-        return response()->json(Company::find($id), 200);
+        if (auth()->user()->user_type_id == 1) {
+            return response()->json(Company::paginate(10), 200);
+        }else{
+            if (auth()->user()->company_id == $id) {
+                return response()->json(Company::find($id), 200);
+            }else{
+                return response()->json('not allowed', 200);
+            }
+        }
+        
     }
 
     /**
@@ -80,17 +102,40 @@ class CompanyController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'name'=>'required',
-            'director'=>'required',
-            'address'=>'required',
-            'email'=>'required|email',
-            'website'=>'required',
-            'phone'=>'required',
-        ]);
-        $company = Company::find($id);
-        $company->update($request->all());
-        return response()->json($company, 200);
+
+        if (auth()->user()->user_type_id == 1) {
+            $validator = Validator::make($request->all(), [
+                'name'=>'required',
+                'director'=>'required',
+                'address'=>'required',
+                'email'=>'required|email',
+                'website'=>'required',
+                'phone'=>'required',
+            ]);
+            $company = Company::find($id);
+            $company->update($request->all());
+            return response()->json($company, 200);
+        }else{
+            if (auth()->user()->company_id == $id) {
+
+                $validator = Validator::make($request->all(), [
+                    'name'=>'required',
+                    'director'=>'required',
+                    'address'=>'required',
+                    'email'=>'required|email',
+                    'website'=>'required',
+                    'phone'=>'required',
+                ]);
+                $company = Company::find($id);
+                $company->update($request->all());
+                return response()->json($company, 200);
+
+            }else{
+
+                return response()->json('not allowed', 200);
+            }
+        }
+        
     }
 
     /**
@@ -101,8 +146,19 @@ class CompanyController extends Controller
      */
     public function destroy($id)
     {
-        $company = Company::find($id);
-        $company->delete();
-        return response()->json(null, 204);
+        if (auth()->user()->user_type_id == 1) {
+            $company = Company::find($id);
+            $company->delete();
+            return response()->json(null, 204);
+        }else{
+            if (auth()->user()->company_id == $id) {
+                $company = Company::find($id);
+                $company->delete();
+                return response()->json(null, 204);
+            }else{
+                return response()->json('not allowed', 200);
+            }
+        }
+        
     }
 }

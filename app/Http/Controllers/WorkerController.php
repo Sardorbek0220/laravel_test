@@ -16,7 +16,12 @@ class WorkerController extends Controller
      */
     public function index()
     {
-        return response()->json(Worker::paginate(10), 200);
+        if (auth()->user()->user_type_id == 1) {
+            return response()->json(Worker::paginate(10), 200);
+        }else{
+            return response()->json(Worker::where('company_id', auth()->user()->company_id)->paginate(10), 200);
+        }
+        
         // return Category::all();
     }
 
@@ -60,7 +65,12 @@ class WorkerController extends Controller
      */
     public function show($id)
     {
-        return response()->json(Worker::find($id), 200);
+        if (auth()->user()->user_type_id == 1) {
+            return response()->json(Worker::find($id), 200);
+        }else{
+            return response()->json(Worker::where('company_id', auth()->user()->company_id)->find($id), 200);
+        }
+        
     }
 
     /**
@@ -83,19 +93,25 @@ class WorkerController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'passport'=>'required',
-            'firstname'=>'required',
-            'secondname'=>'required',
-            'lastname'=>'required',
-            'position'=>'required',
-            'address'=>'required',
-            'phone'=>'required',
-            'company_id'=>'required',
-        ]);
         $worker = Worker::find($id);
-        $worker->update($request->all());
-        return response()->json($worker, 200);
+        if ($worker->company_id == auth()->user()->company_id || auth()->user()->user_type_id == 1) {
+            $validator = Validator::make($request->all(), [
+                'passport'=>'required',
+                'firstname'=>'required',
+                'secondname'=>'required',
+                'lastname'=>'required',
+                'position'=>'required',
+                'address'=>'required',
+                'phone'=>'required',
+                'company_id'=>'required',
+            ]);
+            
+            $worker->update($request->all());
+            return response()->json($worker, 200);
+        }else{
+            return response()->json('something went wrong!!!', 200);
+        }
+        
     }
 
     /**
@@ -107,7 +123,12 @@ class WorkerController extends Controller
     public function destroy($id)
     {
         $worker = Worker::find($id);
-        $worker->delete();
-        return response()->json(null, 204);
+        if ($worker->company_id == auth()->user()->company_id || auth()->user()->user_type_id == 1) {
+            $worker->delete();
+            return response()->json(null, 204);
+        }else{
+            return response()->json('something went wrong!!!', 200);
+        }
+        
     }
 }
